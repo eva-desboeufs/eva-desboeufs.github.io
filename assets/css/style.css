@@ -149,9 +149,9 @@ a:focus-visible, button:focus-visible {
 .hero__title { position: relative; display: inline-block; }
 .signature {
   font-family: var(--font-script); color: var(--orange);
-  font-size: clamp(64px, 13vw, 200px); line-height: 1; font-weight: 400;
-  display: block;
-  position: absolute; left: 14%; bottom: -.5em;
+  font-size: clamp(64px, 13vw, 200px); line-height: 1.6; font-weight: 400;
+  display: block; padding: 0 .3em 0 .1em;
+  position: absolute; left: 12%; bottom: -.8em;
   text-shadow: 0 2px 18px rgba(0,0,0,.6);
   white-space: nowrap; transform: rotate(-6deg); transform-origin: left;
   pointer-events: none;
@@ -171,8 +171,8 @@ a:focus-visible, button:focus-visible {
 .hero__actions { display: flex; flex-wrap: wrap; gap: 14px; }
 
 /* Effet signature : le nom se « trace » de gauche à droite, une fois */
-.js .signature { clip-path: inset(0 100% 0 0); animation: write 1.8s .5s cubic-bezier(.6,.1,.3,1) forwards; }
-@keyframes write { to { clip-path: inset(0 -10% 0 0); } }
+.js .signature { clip-path: inset(-60% 100% -60% -20%); animation: write 1.8s .5s cubic-bezier(.6,.1,.3,1) forwards; }
+@keyframes write { to { clip-path: inset(-60% -20% -60% -20%); } }
 
 /* ---------- Sections ---------- */
 .section { padding: var(--space) var(--gutter) 0; }
@@ -312,10 +312,68 @@ a:focus-visible, button:focus-visible {
 .js .reveal { opacity: 0; transform: translateY(28px); transition: opacity .9s ease, transform .9s cubic-bezier(.2,.7,.2,1); }
 .js .reveal.is-visible { opacity: 1; transform: none; }
 
+/* ---------- Mouvement : apparitions d'images ----------
+   Le script ajoute .reveal-media et data-dir (up, left, right, down, center)
+   aux images. L'image se dévoile comme un rideau tout en dézoomant. */
+main { overflow-x: clip; }
+.js .reveal-media { clip-path: inset(100% 0 0 0); transition: clip-path 1.3s cubic-bezier(.77,0,.18,1); }
+.js .reveal-media[data-dir="left"]   { clip-path: inset(0 100% 0 0); }
+.js .reveal-media[data-dir="right"]  { clip-path: inset(0 0 0 100%); }
+.js .reveal-media[data-dir="down"]   { clip-path: inset(0 0 100% 0); }
+.js .reveal-media[data-dir="center"] { clip-path: inset(50% 50% 50% 50%); }
+.js .reveal-media.is-visible { clip-path: inset(0 0 0 0); }
+.js .reveal-media img { transform: scale(1.35); transition: transform 1.8s cubic-bezier(.2,.7,.2,1); }
+.js .reveal-media.is-visible img { transform: scale(var(--img-scale, 1)); }
+.js .feature__media.reveal-media img { --img-scale: 1.15; }  /* marge pour la parallaxe interne */
+.js .project-hero__media img { transform: scale(1.15); animation: hero-in 1.6s cubic-bezier(.2,.7,.2,1) both; }
+@keyframes hero-in { from { transform: scale(1.35); opacity: 0; } }
+.hero__title .title-xl { display: block; }
+.js .hero__bg img { animation: hero-in 2.2s cubic-bezier(.2,.7,.2,1) both; }
+.js .feature__media.reveal-media:hover img { transform: scale(1.2); }
+.js .gallery figure.reveal-media:hover img { transform: scale(1.03); }
+
+/* Textes qui glissent depuis le côté */
+.js .reveal[data-dir="left"]  { transform: translateX(-60px); }
+.js .reveal[data-dir="right"] { transform: translateX(60px); }
+.js .reveal.is-visible[data-dir] { transform: none; }
+
+/* Titres lettre par lettre */
+.split { display: inline-block; }
+.split .char { display: inline-block; white-space: pre; }
+.js .split .char {
+  transform: translateY(105%) rotate(6deg); opacity: 0;
+  transition: transform .9s cubic-bezier(.2,.8,.2,1), opacity .6s ease;
+  transition-delay: calc(var(--i) * 45ms);
+}
+.js .split.is-visible .char { transform: none; opacity: 1; }
+.split-mask { display: inline-block; overflow: hidden; padding: .06em .04em 0; margin: -.06em -.04em 0; vertical-align: bottom; }
+
+/* Parallaxe : le script règle --py / --px ; on utilise la propriété
+   « translate » pour ne pas gêner les autres transformations. */
+[data-speed], [data-x] { translate: var(--px, 0) var(--py, 0); will-change: translate; }
+.project-hero__media { overflow: hidden; }
+.project-hero__media img { display: block; }
+
+/* Bandeau qui défile avec la page, deux lignes en sens opposés */
+.marquee {
+  padding: var(--space) 0 0; overflow: hidden; user-select: none;
+}
+.marquee__row {
+  display: flex; gap: .4em; white-space: nowrap; width: max-content;
+  font-family: var(--font-title); text-transform: uppercase;
+  font-size: clamp(64px, 12vw, 180px); line-height: 1.05;
+}
+.marquee__row span { color: transparent; -webkit-text-stroke: 1.5px rgba(255,255,255,.55); }
+.marquee__row span:nth-child(3n+2) { color: var(--orange); -webkit-text-stroke: 0; }
+.marquee__row--b { margin-left: -60vw; }
+
 /* ---------- Réduction des animations ---------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
   .js .reveal { opacity: 1; transform: none; }
   .js .signature { clip-path: none; }
+  .js .reveal-media, .js .reveal-media[data-dir] { clip-path: none; }
+  .js .reveal-media img, .js .reveal[data-dir], .js .split .char { transform: none; opacity: 1; }
+  [data-speed], [data-x] { translate: none; }
   .feature__media:hover img, .gallery figure:hover img { transform: none; }
 }
