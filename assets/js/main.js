@@ -36,6 +36,103 @@
     }
   }
 
+  /* =========================================================
+     Fenêtre « Me contacter »
+     Les coordonnées se modifient ICI, une seule fois pour tout le site.
+     Le numéro est découpé en morceaux pour ne pas apparaître en clair dans
+     le code de la page (les robots qui récoltent les numéros le lisent).
+     ========================================================= */
+  var CONTACT = {
+    email: "eva.desboeufs@gmail.com",
+    phone: ["06", "52", "98", "52", "33"],
+    linkedin: "https://fr.linkedin.com/in/eva-desboeufs-7b1337314"
+  };
+  var T = pageLang === "fr" ? {
+    title: "Me contacter", lead: "Un stage, une idée, un brief même flou ? Écrivez-moi ou appelez-moi.",
+    email: "E-mail", phone: "Téléphone", linkedin: "LinkedIn",
+    copy: "Copier", copied: "Copié !", write: "Écrire", call: "Appeler", open: "Voir le profil",
+    close: "Fermer", copiedMsg: "copié dans le presse-papiers"
+  } : {
+    title: "Contact me", lead: "An internship, an idea, even a rough brief? Write to me or call me.",
+    email: "Email", phone: "Phone", linkedin: "LinkedIn",
+    copy: "Copy", copied: "Copied!", write: "Write", call: "Call", open: "View profile",
+    close: "Close", copiedMsg: "copied to clipboard"
+  };
+
+  function buildContactDialog() {
+    var p = CONTACT.phone;
+    var phoneShown = pageLang === "fr" ? p.join(" ") : "+33 " + p[0].slice(1) + " " + p.slice(1).join(" ");
+    var phoneTel = "+33" + p.join("").slice(1);
+    var d = document.createElement("dialog");
+    d.className = "contact-dialog";
+    d.setAttribute("aria-labelledby", "contact-dialog-title");
+    d.innerHTML =
+      '<button class="contact-dialog__close" type="button" aria-label="' + T.close + '">×</button>' +
+      '<p class="contact-dialog__sign" aria-hidden="true">Eva Desboeufs</p>' +
+      '<h2 class="title-m" id="contact-dialog-title">' + T.title + "</h2>" +
+      '<p class="contact-dialog__lead">' + T.lead + "</p>" +
+      '<ul class="contact-dialog__list">' +
+        row(T.email, CONTACT.email, CONTACT.email, "mailto:" + CONTACT.email, T.write) +
+        row(T.phone, phoneShown, phoneShown, "tel:" + phoneTel, T.call) +
+        '<li><span class="contact-dialog__label">' + T.linkedin + "</span>" +
+          '<span class="contact-dialog__value">eva-desboeufs</span>' +
+          '<span class="contact-dialog__actions"><a class="btn btn--small" href="' + CONTACT.linkedin +
+          '" target="_blank" rel="noopener">' + T.open + ' <span aria-hidden="true">↗</span></a></span></li>' +
+      "</ul>" +
+      '<p class="visually-hidden" aria-live="polite" data-live></p>';
+    document.body.appendChild(d);
+
+    function row(label, shown, copyValue, href, action) {
+      return '<li><span class="contact-dialog__label">' + label + "</span>" +
+        '<span class="contact-dialog__value">' + shown + "</span>" +
+        '<span class="contact-dialog__actions">' +
+          '<button class="btn btn--small btn--ghost" type="button" data-copy="' + copyValue + '" data-what="' + label + '">' + T.copy + "</button>" +
+          '<a class="btn btn--small" href="' + href + '">' + action + "</a>" +
+        "</span></li>";
+    }
+
+    var live = d.querySelector("[data-live]");
+    d.addEventListener("click", function (e) {
+      if (e.target === d) {                                      // clic à côté de la fenêtre
+        var r = d.getBoundingClientRect();
+        if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) d.close();
+        return;
+      }
+      if (e.target.closest(".contact-dialog__close")) { d.close(); return; }
+      var b = e.target.closest("[data-copy]");
+      if (!b) return;
+      copyText(b.getAttribute("data-copy")).then(function () {
+        b.textContent = T.copied; b.classList.add("is-copied");
+        live.textContent = b.getAttribute("data-what") + " " + T.copiedMsg;
+        setTimeout(function () { b.textContent = T.copy; b.classList.remove("is-copied"); }, 1800);
+      });
+    });
+    return d;
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
+    return new Promise(function (resolve) {
+      var ta = document.createElement("textarea");
+      ta.value = text; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy"); } catch (e) {}
+      ta.remove(); resolve();
+    });
+  }
+
+  // Tous les boutons « Me contacter » / « Parlons de votre projet » ouvrent la fenêtre.
+  // Sans JavaScript, ils restent de simples liens e-mail.
+  var dialog = null;
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest("a.btn[href^='mailto:'], [data-contact]");
+    if (!a || a.closest(".contact-dialog")) return;
+    if (typeof HTMLDialogElement !== "function") return; // très vieux navigateur : lien e-mail
+    e.preventDefault();
+    dialog = dialog || buildContactDialog();
+    dialog.showModal();
+  });
+
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   function all(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
 

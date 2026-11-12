@@ -29,9 +29,14 @@ assets/img/                Images optimisées (version 1600 px + version "-800" 
 5. Mettre à jour le lien FR/EN de chaque page (il doit pointer vers la même page dans l'autre langue).
 6. Ajouter une carte du projet sur les deux accueils.
 
+## Coordonnées (fenêtre « Me contacter »)
+
+E-mail, téléphone et LinkedIn se modifient à un seul endroit : l'objet `CONTACT` en haut de `assets/js/main.js`.
+Le numéro y est découpé en morceaux pour ne pas apparaître en clair dans le code (protection contre les robots).
+
 ## Règles
 
-- Ne jamais publier le numéro de téléphone ni l'adresse postale.
+- Ne jamais publier l'adresse postale. Le téléphone n'apparaît que dans la fenêtre de contact.
 - Ne pas déposer de fichier lourd (PDF du portfolio, vidéos) : seulement des images optimisées.
 - Un changement par commit, message en français.
 

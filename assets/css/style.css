@@ -312,6 +312,49 @@ a:focus-visible, button:focus-visible {
 .js .reveal { opacity: 0; transform: translateY(28px); transition: opacity .9s ease, transform .9s cubic-bezier(.2,.7,.2,1); }
 .js .reveal.is-visible { opacity: 1; transform: none; }
 
+/* ---------- Fenêtre « Me contacter » ---------- */
+.contact-dialog {
+  width: min(560px, calc(100% - 32px)); max-height: calc(100svh - 32px);
+  padding: clamp(28px, 5vw, 44px); margin: auto;
+  background: #0b0b0b; color: var(--white);
+  border: 1px solid #2a2a2a; border-top: 3px solid var(--orange); border-radius: 18px;
+  box-shadow: 0 30px 80px rgba(0,0,0,.7), 0 0 60px rgba(255,69,0,.15);
+  overflow: auto;
+}
+.contact-dialog::backdrop { background: rgba(0,0,0,.72); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.contact-dialog[open] { animation: dialog-in .45s cubic-bezier(.2,.8,.2,1); }
+.contact-dialog[open]::backdrop { animation: fade-in .3s ease; }
+@keyframes dialog-in { from { opacity: 0; transform: translateY(24px) scale(.97); } }
+@keyframes fade-in { from { opacity: 0; } }
+.contact-dialog__close {
+  position: absolute; top: 12px; right: 12px; width: 44px; height: 44px;
+  border: 0; border-radius: 50%; background: transparent; color: var(--grey);
+  font-size: 30px; line-height: 1; cursor: pointer;
+}
+.contact-dialog__close:hover { color: var(--orange); background: #1a1a1a; }
+.contact-dialog__sign {
+  font-family: var(--font-script); color: var(--orange); font-size: 44px; line-height: 1;
+  margin: 0 0 -6px; transform: rotate(-4deg); transform-origin: left;
+}
+.contact-dialog__lead { color: var(--grey); margin: 10px 0 24px; }
+.contact-dialog__list { list-style: none; margin: 0; padding: 0; }
+.contact-dialog__list li {
+  display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 6px 16px;
+  padding: 16px 0; border-top: 1px solid #222;
+}
+.contact-dialog__label {
+  grid-column: 1 / -1; font-size: .75rem; font-weight: 700; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--orange);
+}
+.contact-dialog__value { font-size: clamp(16px, 2.2vw, 19px); font-weight: 600; word-break: break-all; }
+.contact-dialog__actions { display: flex; gap: 8px; }
+.contact-dialog .btn--small { min-height: 44px; padding: 8px 16px; font-size: .85rem; }
+.contact-dialog .btn.is-copied { background: var(--orange); color: var(--black); border-color: var(--orange); }
+@media (max-width: 480px) {
+  .contact-dialog__list li { grid-template-columns: 1fr; }
+  .contact-dialog__actions .btn { flex: 1; }
+}
+
 /* ---------- Mouvement : apparitions d'images ----------
    Le script ajoute .reveal-media et data-dir (up, left, right, down, center)
    aux images. L'image se dévoile comme un rideau tout en dézoomant. */
