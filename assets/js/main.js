@@ -100,6 +100,12 @@
   set(".marquee__row--a", "data-x", ["-0.6"]);
   set(".marquee__row--b", "data-x", ["0.6"]);
 
+  // Éléments « libres » : ils bougent en continu (fonds, bandeau, accroche qui
+  // quitte l'écran). Tous les autres s'arrêtent net une fois à leur place.
+  all(".hero__bg, .hero__title .title-xl, .signature, .hero__lead, .hero__status, .hero__actions," +
+      " .project-hero__img, .feature__media img, .marquee__row")
+    .forEach(function (el) { el.setAttribute("data-free", ""); });
+
   /* =========================================================
      3. Apparitions au défilement
      ========================================================= */
@@ -124,14 +130,17 @@
      ========================================================= */
   var layers = all("[data-speed], [data-x]").map(function (el) {
     return { el: el, sy: parseFloat(el.getAttribute("data-speed")) || 0,
-             sx: parseFloat(el.getAttribute("data-x")) || 0, center: 0 };
+             sx: parseFloat(el.getAttribute("data-x")) || 0,
+             free: el.hasAttribute("data-free"), center: 0, land: 0 };
   });
   var vh = window.innerHeight;
   var factor = 1;
+  var LAND = 0.6; // un élément est « en place » quand son centre atteint 60 % de l'écran
 
   function measure() {
     vh = window.innerHeight;
     factor = window.innerWidth < 760 ? 0.6 : 1; // plus doux sur téléphone
+    var maxScroll = document.documentElement.scrollHeight - vh;
     layers.forEach(function (l) {
       l.el.style.setProperty("--px", "0px");
       l.el.style.setProperty("--py", "0px");
@@ -139,6 +148,9 @@
     layers.forEach(function (l) {
       var r = l.el.getBoundingClientRect();
       l.center = r.top + window.scrollY + r.height / 2;
+      // Position de défilement où l'élément se pose (jamais au-delà du bas de page,
+      // sinon les éléments tout en bas n'arriveraient jamais à leur place)
+      l.land = Math.max(0, Math.min(l.center - vh * LAND, maxScroll));
     });
     update();
   }
@@ -149,11 +161,21 @@
     revealVisible();
     var y = window.scrollY;
     for (var i = 0; i < layers.length; i++) {
-      var l = layers[i];
-      var d = l.center - y - vh / 2; // distance au centre de l'écran
-      if (d > vh * 1.5 || d < -vh * 1.5) continue; // hors champ : on ne calcule pas
-      if (l.sy) l.el.style.setProperty("--py", (-d * l.sy * factor).toFixed(1) + "px");
-      if (l.sx) l.el.style.setProperty("--px", (-d * l.sx * factor).toFixed(1) + "px");
+      var l = layers[i], off;
+      if (l.free) {
+        var d = l.center - y - vh / 2; // distance au centre de l'écran
+        if (d > vh * 1.5 || d < -vh * 1.5) continue;
+        off = -d;
+      } else {
+        // Reste à parcourir avant d'être en place : 0 = posé, l'élément ne bouge plus.
+        // Courbe en carré : l'élément ralentit en douceur avant de s'arrêter.
+        var rest = Math.min(l.land - y, vh * 1.5);
+        off = rest > 0 ? -(rest * rest) / vh : 0;
+        if (off === 0 && l.done) continue;
+        l.done = off === 0;
+      }
+      if (l.sy) l.el.style.setProperty("--py", (off * l.sy * factor).toFixed(1) + "px");
+      if (l.sx) l.el.style.setProperty("--px", (off * l.sx * factor).toFixed(1) + "px");
     }
   }
   function onScroll() {
